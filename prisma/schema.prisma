@@ -1,0 +1,126 @@
+// prisma/schema.prisma
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+// =======================
+// USER & AUTH
+// =======================
+model User {
+    id        String   @id @default(cuid())
+    name      String?
+    email     String   @unique
+    password  String?
+    role      String   @default("USER") // USER, ADMIN
+    image     String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    orders    Order[]
+    reviews   Review[]
+    addresses Address[]
+}
+
+// =======================
+// PRODUCT & CATALOG
+// =======================
+model Category {
+    id          String    @id @default(cuid())
+    name        String    @unique
+    slug        String    @unique
+    description String?
+    image       String?
+    products    Product[]
+    createdAt   DateTime  @default(now())
+}
+
+model Product {
+    id           String   @id @default(cuid())
+    name         String
+    slug         String   @unique
+    description  String
+    price        Float
+    comparePrice Float? // আগের দাম (ডিসকাউন্ট দেখানোর জন্য)
+    images       String[] // একাধিক ছবি
+    sizes        String[] // S, M, L, XL
+    colors       String[] // Red, Black
+    stock        Int      @default(0)
+    isFeatured   Boolean  @default(false)
+    isActive     Boolean  @default(true)
+
+    categoryId String
+    category   Category @relation(fields: [categoryId], references: [id])
+
+    reviews    Review[]
+    orderItems OrderItem[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// =======================
+// ORDER SYSTEM
+// =======================
+model Order {
+    id     String @id @default(cuid())
+    userId String
+    user   User   @relation(fields: [userId], references: [id])
+
+    totalAmount   Float
+    status        String @default("PENDING") // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+    paymentMethod String // BKASH, NAGAD, COD, STRIPE
+    paymentStatus String @default("UNPAID") // UNPAID, PAID, REFUNDED
+
+    shippingName    String
+    shippingPhone   String
+    shippingAddress String
+    shippingCity    String
+
+    items     OrderItem[]
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+    id        String  @id @default(cuid())
+    orderId   String
+    order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    productId String
+    product   Product @relation(fields: [productId], references: [id])
+
+    quantity Int
+    price    Float // অর্ডারের সময়ের দাম
+    size     String?
+    color    String?
+}
+
+// =======================
+// REVIEWS & ADDRESS
+// =======================
+model Review {
+    id        String  @id @default(cuid())
+    userId    String
+    user      User    @relation(fields: [userId], references: [id])
+    productId String
+    product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    rating    Int
+    comment   String?
+    createdAt DateTime @default(now())
+}
+
+model Address {
+    id         String  @id @default(cuid())
+    userId     String
+    user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    name       String
+    phone      String
+    street     String
+    city       String
+    postalCode String?
+    isDefault  Boolean @default(false)
+}
