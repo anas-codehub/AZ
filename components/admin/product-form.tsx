@@ -126,10 +126,11 @@ export function ProductForm({
       <div className="grid grid-cols-2 gap-4">
         <Input
           type="number"
-          placeholder="Stock"
+          placeholder="Stock Quantity"
           value={form.stock}
           onChange={(e) => setForm({ ...form, stock: e.target.value })}
-          required
+          required // 👈 বাধ্যতামূলক
+          min="0" // 👈 ০ এর নিচে যেতে পারবে না
         />
 
         {/* 👇 ক্যাটাগরি সিলেক্ট ড্রপডাউন */}

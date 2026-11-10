@@ -11,22 +11,19 @@ import {
   X,
   Heart,
   LayoutDashboard,
-} from "lucide-react"; // 👈 LayoutDashboard যোগ করা হয়েছে
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useSession, signOut } from "next-auth/react";
 import { useWishlistStore } from "@/store/wishlist-store";
 
-const navLinks = [
-  { name: "New Arrivals", href: "/products?sort=newest" },
-  { name: "Men", href: "/products?category=men" },
-  { name: "Women", href: "/products?category=women" },
-  { name: "Accessories", href: "/products?category=accessories" },
-  { name: "Sale", href: "/products?sale=true", highlight: true },
-];
+interface NavbarProps {
+  categories: any[]; // 👈 প্রপ হিসেবে ক্যাটাগরি রিসিভ করবে
+}
 
-export function Navbar() {
+export function Navbar({ categories = [] }: NavbarProps) {
   const wishlistCount = useWishlistStore((state) => state.items.length);
   const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -65,18 +62,51 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8 flex-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={cn(
-                  "text-sm uppercase tracking-widest font-medium transition-colors hover:text-brand-600",
-                  link.highlight ? "text-brand-600" : "text-ink-800",
+            <Link
+              href="/products?sort=newest"
+              className="text-sm uppercase tracking-widest font-medium transition-colors hover:text-brand-600 text-ink-800"
+            >
+              New Arrivals
+            </Link>
+
+            {/* 👇 ডাইনামিক মেগা-মেনু */}
+            {categories.map((cat) => (
+              <div key={cat.id} className="relative group">
+                <Link
+                  href={`/products?category=${cat.slug}`}
+                  className="flex items-center gap-1 text-sm uppercase tracking-widest font-medium transition-colors hover:text-brand-600 text-ink-800 py-2"
+                >
+                  {cat.name}
+                  {cat.children.length > 0 && (
+                    <ChevronDown className="w-3 h-3 group-hover:rotate-180 transition-transform" />
+                  )}
+                </Link>
+
+                {/* Dropdown Menu */}
+                {cat.children.length > 0 && (
+                  <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                    <div className="bg-white border border-ink-100 shadow-xl p-4 min-w-[200px] flex flex-col gap-2">
+                      {cat.children.map((sub: any) => (
+                        <Link
+                          key={sub.id}
+                          href={`/products?category=${sub.slug}`}
+                          className="text-sm text-ink-600 hover:text-brand-600 transition-colors py-1"
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              >
-                {link.name}
-              </Link>
+              </div>
             ))}
+
+            <Link
+              href="/products?sale=true"
+              className="text-sm uppercase tracking-widest font-medium transition-colors text-brand-600"
+            >
+              Sale
+            </Link>
           </nav>
 
           {/* Logo (Center) */}
@@ -87,9 +117,8 @@ export function Navbar() {
             LUXE
           </Link>
 
-          {/* Right Icons */}
+          {/* Right Icons (এখানে আগের কোডটাই থাকবে) */}
           <div className="flex items-center gap-2 lg:gap-4 flex-1 justify-end">
-            {/* Search Icon */}
             <Button
               variant="ghost"
               size="icon"
@@ -98,10 +127,8 @@ export function Navbar() {
               <Search className="w-5 h-5" />
             </Button>
 
-            {/* User / Account Section */}
             {session ? (
               <div className="flex items-center gap-2 lg:gap-4">
-                {/* 👇 অ্যাডমিন বাটন (শুধু ADMIN রোলের জন্য দেখাবে) */}
                 {session.user?.role === "ADMIN" && (
                   <Link href="/admin" className="hidden md:block">
                     <Button
@@ -113,7 +140,6 @@ export function Navbar() {
                     </Button>
                   </Link>
                 )}
-
                 <Link
                   href="/account"
                   className="text-sm font-medium hidden sm:block uppercase tracking-widest"
@@ -152,7 +178,6 @@ export function Navbar() {
               </Button>
             </Link>
 
-            {/* Cart Icon */}
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingBag className="w-5 h-5" />
@@ -167,9 +192,9 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Menu Overlay (এখানেও সাব-ক্যাটাগরি যোগ করা হলো) */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-white lg:hidden flex flex-col animate-fade-in">
+        <div className="fixed inset-0 z-[60] bg-white lg:hidden flex flex-col animate-fade-in overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b border-ink-100">
             <span className="font-serif text-2xl">LUXE</span>
             <button onClick={() => setMobileMenuOpen(false)}>
@@ -177,21 +202,52 @@ export function Navbar() {
             </button>
           </div>
           <nav className="flex flex-col p-6 gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  "text-xl uppercase tracking-widest font-medium",
-                  link.highlight ? "text-brand-600" : "text-ink-900",
-                )}
+            <Link
+              href="/products?sort=newest"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-xl uppercase tracking-widest font-medium text-ink-900"
+            >
+              New Arrivals
+            </Link>
+
+            {/* Mobile Dynamic Categories */}
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                className="space-y-3 border-b border-ink-100 pb-3"
               >
-                {link.name}
-              </Link>
+                <Link
+                  href={`/products?category=${cat.slug}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-xl uppercase tracking-widest font-medium text-ink-900 block"
+                >
+                  {cat.name}
+                </Link>
+                {cat.children.length > 0 && (
+                  <div className="flex flex-col gap-2 pl-4">
+                    {cat.children.map((sub: any) => (
+                      <Link
+                        key={sub.id}
+                        href={`/products?category=${sub.slug}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-sm text-ink-500 uppercase tracking-wider"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
 
-            {/* 👇 মোবাইলে অ্যাডমিন লিংক */}
+            <Link
+              href="/products?sale=true"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-xl uppercase tracking-widest font-medium text-brand-600"
+            >
+              Sale
+            </Link>
+
             {session?.user?.role === "ADMIN" && (
               <Link
                 href="/admin"
@@ -201,8 +257,6 @@ export function Navbar() {
                 Admin Dashboard
               </Link>
             )}
-
-            {/* মোবাইলে লগআউট দেখানোর জন্য */}
             {session && (
               <button
                 onClick={() => {

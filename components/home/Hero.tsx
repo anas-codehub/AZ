@@ -2,17 +2,24 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { prisma } from "@/lib/prisma"; // 👈 নতুন ইমপোর্ট
 
-export function Hero() {
+export async function Hero() {
+  // ডেটাবেস থেকে হিরো ইমেজ আনা (না থাকলে ডিফল্ট Unsplash ইমেজ)
+  const settings = await prisma.siteSetting.findUnique({
+    where: { id: "default" },
+  });
+
+  const heroImage =
+    settings?.heroImage ||
+    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop";
+
   return (
     <section className="relative h-[85vh] min-h-[600px] w-full flex items-center justify-center overflow-hidden bg-ink-900">
-      {/* Background Image (আপাতত একটি প্লেসহোল্ডার ইমেজ, পরে নিজের ইমেজ দিবেন) */}
+      {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 scale-105 animate-fade-in"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2070&auto=format&fit=crop')",
-        }}
+        style={{ backgroundImage: `url('${heroImage}')` }}
       />
 
       {/* Overlay */}

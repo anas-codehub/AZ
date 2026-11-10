@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         shippingPhone: phone,
         shippingAddress: address,
         shippingCity: city,
-        couponId: couponId || null,
+        couponId: couponId || null, 
         items: {
           create: items.map((item: any) => ({
             productId: item.id,
@@ -57,6 +57,17 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    for (const item of items) {
+  await prisma.product.update({
+    where: { id: item.id },
+    data: {
+      stock: {
+        decrement: item.quantity, // যত  অর্ডার হয়েছে, স্টক তত কমবে
+      },
+    },
+  });
+}
 
     return NextResponse.json({ success: true, orderId: order.id }, { status: 201 });
   } catch (error) {

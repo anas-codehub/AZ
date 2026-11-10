@@ -31,10 +31,13 @@ export default async function ProductsPage({
       { description: { contains: q, mode: "insensitive" } },
     ];
   }
+  // app/products/page.tsx
   if (category) {
-    // এমন ক্যাটাগরি খোঁজা যার slug 'category' এর সমান অথবা যার parent এর slug 'category' এর সমান
     where.category = {
-      OR: [{ slug: category }, { parent: { slug: category } }],
+      OR: [
+        { slug: category }, // যদি সরাসরি Hoodie সিলেক্ট করে
+        { parent: { slug: category } }, // যদি Men সিলেক্ট করে, তবে Men এর সব সাব-ক্যাটাগরি
+      ],
     };
   }
   if (sizes.length > 0) {

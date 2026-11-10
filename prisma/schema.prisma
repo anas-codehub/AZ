@@ -144,3 +144,9 @@ model Coupon {
 
     orders Order[] // কোন কোন অর্ডারে ব্যবহার হয়েছে (ঐচ্ছিক)
 }
+
+model SiteSetting {
+    id        String   @id @default("default") // সবসময় একটি রেকর্ড থাকবে
+    heroImage String? // হিরো সেকশনের বড় ছবি
+    updatedAt DateTime @updatedAt
+}

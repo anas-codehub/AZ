@@ -1,6 +1,5 @@
 // app/product/[slug]/page.tsx
 import { prisma } from "@/lib/prisma";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
@@ -9,6 +8,42 @@ import { Heart, Truck, RotateCcw, ShieldCheck, Star, User } from "lucide-react";
 import { ReviewForm } from "@/components/product/review-form";
 import { WishlistButton } from "@/components/product/wishlist-button";
 import { RelatedProducts } from "@/components/product/related-products";
+import { ImageGallery } from "@/components/product/image-gallery";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    select: { name: true, description: true, images: true, price: true },
+  });
+
+  if (!product) {
+    return { title: "Product Not Found" };
+  }
+
+  return {
+    title: product.name,
+    description: product.description.substring(0, 160), // ১৫০-১৬০ অক্ষর是最好的
+    openGraph: {
+      title: product.name,
+      description: product.description.substring(0, 160),
+      images: product.images.length > 0 ? [product.images[0]] : [],
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description.substring(0, 160),
+      images: product.images.length > 0 ? [product.images[0]] : [],
+    },
+  };
+}
 
 export default async function ProductDetailPage({
   params,
@@ -38,33 +73,9 @@ export default async function ProductDetailPage({
     <div className="container-luxe py-12 md:py-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
         {/* Left: Image Gallery */}
-        <div className="space-y-4">
-          <div className="relative aspect-[3/4] bg-ink-100 overflow-hidden">
-            <Image
-              src={
-                product.images[0] ||
-                "https://placehold.co/600x800?text=No+Image"
-              }
-              alt={product.name}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-4">
-              {product.images.map((img, i) => (
-                <div key={i} className="relative aspect-square bg-ink-100">
-                  <Image
-                    src={img}
-                    alt={`${product.name} ${i}`}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+        <div>
+          {/* 👇 ডাইনামিক ইমেজ গ্যালারি কম্পোনেন্ট */}
+          <ImageGallery images={product.images} productName={product.name} />
         </div>
 
         {/* Right: Product Info */}
@@ -183,7 +194,7 @@ export default async function ProductDetailPage({
         </div>
       </div>
 
-      {/* 👇 নতুন রিলেটেড প্রোডাক্ট সেকশন 👇 */}
+      {/* 👇 রিলেটেড প্রোডাক্ট সেকশন 👇 */}
       <RelatedProducts
         categoryId={product.categoryId}
         currentProductId={product.id}
