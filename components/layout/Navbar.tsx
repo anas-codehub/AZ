@@ -114,7 +114,7 @@ export function Navbar({ categories = [] }: NavbarProps) {
             href="/"
             className="font-serif text-3xl tracking-tight absolute left-1/2 -translate-x-1/2"
           >
-            LUXE
+            ANSUZITA
           </Link>
 
           {/* Right Icons (এখানে আগের কোডটাই থাকবে) */}
