@@ -3,11 +3,20 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
+import {
+  Search,
+  ShoppingBag,
+  User,
+  Menu,
+  X,
+  Heart,
+  LayoutDashboard,
+} from "lucide-react"; // 👈 LayoutDashboard যোগ করা হয়েছে
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useSession, signOut } from "next-auth/react";
+import { useWishlistStore } from "@/store/wishlist-store";
 
 const navLinks = [
   { name: "New Arrivals", href: "/products?sort=newest" },
@@ -18,6 +27,7 @@ const navLinks = [
 ];
 
 export function Navbar() {
+  const wishlistCount = useWishlistStore((state) => state.items.length);
   const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -91,6 +101,19 @@ export function Navbar() {
             {/* User / Account Section */}
             {session ? (
               <div className="flex items-center gap-2 lg:gap-4">
+                {/* 👇 অ্যাডমিন বাটন (শুধু ADMIN রোলের জন্য দেখাবে) */}
+                {session.user?.role === "ADMIN" && (
+                  <Link href="/admin" className="hidden md:block">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs uppercase tracking-widest border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white"
+                    >
+                      <LayoutDashboard className="w-4 h-4 mr-2" /> Admin
+                    </Button>
+                  </Link>
+                )}
+
                 <Link
                   href="/account"
                   className="text-sm font-medium hidden sm:block uppercase tracking-widest"
@@ -113,6 +136,21 @@ export function Navbar() {
                 </Button>
               </Link>
             )}
+
+            <Link href="/wishlist">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative hidden sm:inline-flex"
+              >
+                <Heart className="w-5 h-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
 
             {/* Cart Icon */}
             <Link href="/cart">
@@ -152,6 +190,18 @@ export function Navbar() {
                 {link.name}
               </Link>
             ))}
+
+            {/* 👇 মোবাইলে অ্যাডমিন লিংক */}
+            {session?.user?.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-xl uppercase tracking-widest font-medium text-brand-600 border-t border-ink-100 pt-6 mt-2"
+              >
+                Admin Dashboard
+              </Link>
+            )}
+
             {/* মোবাইলে লগআউট দেখানোর জন্য */}
             {session && (
               <button

@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, phone, address, city, paymentMethod, items, totalAmount } = body;
+    const { name, phone, address, city, paymentMethod, items, totalAmount, couponId } = body;
 
     // ১. ভ্যালিডেশন
     if (!items || items.length === 0) {
@@ -45,6 +45,7 @@ export async function POST(req: Request) {
         shippingPhone: phone,
         shippingAddress: address,
         shippingCity: city,
+        couponId: couponId || null,
         items: {
           create: items.map((item: any) => ({
             productId: item.id,

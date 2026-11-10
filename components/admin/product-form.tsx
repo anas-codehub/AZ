@@ -6,13 +6,19 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
+import { CldUploadWidget } from "next-cloudinary";
 
 interface ProductFormProps {
   initialData?: any;
   isEdit?: boolean;
+  categories: { id: string; name: string; parent: { name: string } | null }[]; // 👈 ক্যাটাগরি ডাটা
 }
 
-export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
+export function ProductForm({
+  initialData,
+  isEdit = false,
+  categories = [],
+}: ProductFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,7 +29,7 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
     price: initialData?.price || "",
     comparePrice: initialData?.comparePrice || "",
     stock: initialData?.stock || 0,
-    categoryId: initialData?.categoryId || "",
+    categoryId: initialData?.categoryId || categories[0]?.id || "", // ডিফল্ট প্রথম সাব-ক্যাটাগরি
     images: initialData?.images?.join(", ") || "",
     sizes: initialData?.sizes?.join(", ") || "",
     colors: initialData?.colors?.join(", ") || "",
@@ -125,12 +131,21 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
           onChange={(e) => setForm({ ...form, stock: e.target.value })}
           required
         />
-        <Input
-          placeholder="Category ID"
+
+        {/* 👇 ক্যাটাগরি সিলেক্ট ড্রপডাউন */}
+        <select
           value={form.categoryId}
           onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
           required
-        />
+          className="w-full border border-ink-200 p-2 text-sm rounded-none"
+        >
+          <option value="">Select Sub-Category</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.parent?.name} → {cat.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <Input
@@ -138,6 +153,26 @@ export function ProductForm({ initialData, isEdit = false }: ProductFormProps) {
         value={form.images}
         onChange={(e) => setForm({ ...form, images: e.target.value })}
       />
+
+      {/* Cloudinary Upload Widget */}
+      <CldUploadWidget
+        signatureEndpoint="/api/sign-cloudinary"
+        uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
+        onSuccess={(result: any) => {
+          const imageUrl = result.info.secure_url;
+          setForm((prev) => ({
+            ...prev,
+            images: prev.images ? `${prev.images}, ${imageUrl}` : imageUrl,
+          }));
+        }}
+      >
+        {({ open }) => (
+          <Button type="button" variant="outline" onClick={() => open()}>
+            Upload Product Image
+          </Button>
+        )}
+      </CldUploadWidget>
+
       <Input
         placeholder="Sizes (comma separated: S, M, L)"
         value={form.sizes}

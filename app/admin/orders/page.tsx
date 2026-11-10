@@ -1,7 +1,7 @@
 // app/admin/orders/page.tsx
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
-import Link from "next/link";
+import { OrderStatusSelect } from "@/components/admin/order-status-select";
 
 export default async function AdminOrdersPage() {
   const orders = await prisma.order.findMany({
@@ -18,6 +18,7 @@ export default async function AdminOrdersPage() {
             <tr>
               <th className="p-4 font-medium">Order ID</th>
               <th className="p-4 font-medium">Customer</th>
+              <th className="p-4 font-medium">Phone</th>
               <th className="p-4 font-medium">Total</th>
               <th className="p-4 font-medium">Status</th>
               <th className="p-4 font-medium">Date</th>
@@ -30,11 +31,14 @@ export default async function AdminOrdersPage() {
                   {order.id.split("-")[0].toUpperCase()}
                 </td>
                 <td className="p-4">{order.shippingName}</td>
+                <td className="p-4">{order.shippingPhone}</td>
                 <td className="p-4">{formatPrice(order.totalAmount)}</td>
                 <td className="p-4">
-                  <span className="px-2 py-1 text-xs bg-brand-100 text-brand-700 rounded">
-                    {order.status}
-                  </span>
+                  {/* 👇 নতুন স্ট্যাটাস সিলেক্ট কম্পোনেন্ট */}
+                  <OrderStatusSelect
+                    orderId={order.id}
+                    currentStatus={order.status}
+                  />
                 </td>
                 <td className="p-4">
                   {new Date(order.createdAt).toLocaleDateString()}

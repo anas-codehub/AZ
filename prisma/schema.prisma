@@ -29,13 +29,18 @@ model User {
 // PRODUCT & CATALOG
 // =======================
 model Category {
-    id          String    @id @default(cuid())
-    name        String    @unique
-    slug        String    @unique
+    id          String  @id @default(cuid())
+    name        String  @unique
+    slug        String  @unique
     description String?
     image       String?
-    products    Product[]
-    createdAt   DateTime  @default(now())
+
+    parentId String?
+    parent   Category?  @relation("CategoryToSubCategory", fields: [parentId], references: [id])
+    children Category[] @relation("CategoryToSubCategory")
+
+    products  Product[]
+    createdAt DateTime  @default(now())
 }
 
 model Product {
@@ -83,6 +88,8 @@ model Order {
     items     OrderItem[]
     createdAt DateTime    @default(now())
     updatedAt DateTime    @updatedAt
+    couponId  String?
+    coupon    Coupon?     @relation(fields: [couponId], references: [id])
 }
 
 model OrderItem {
@@ -123,4 +130,17 @@ model Address {
     city       String
     postalCode String?
     isDefault  Boolean @default(false)
+}
+
+model Coupon {
+    id            String    @id @default(cuid())
+    code          String    @unique
+    discountType  String // "PERCENTAGE" অথবা "FIXED"
+    discountValue Float // ডিসকাউন্টের পরিমাণ (যেমন: 10% বা ৳500)
+    minOrderValue Float? // কত টাকার অর্ডারে প্রযোজ্য হবে
+    isActive      Boolean   @default(true)
+    expiresAt     DateTime?
+    createdAt     DateTime  @default(now())
+
+    orders Order[] // কোন কোন অর্ডারে ব্যবহার হয়েছে (ঐচ্ছিক)
 }

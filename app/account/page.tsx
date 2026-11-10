@@ -7,6 +7,24 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Package, User as UserIcon } from "lucide-react";
 
+// স্ট্যাটাস অনুযায়ী রঙ নির্ধারণের হেল্পার ফাংশন
+function getStatusColor(status: string) {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-700";
+    case "PROCESSING":
+      return "bg-blue-100 text-blue-700";
+    case "SHIPPED":
+      return "bg-purple-100 text-purple-700";
+    case "DELIVERED":
+      return "bg-green-100 text-green-700";
+    case "CANCELLED":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-ink-100 text-ink-700";
+  }
+}
+
 export default async function AccountPage() {
   const session = await auth();
 
@@ -98,7 +116,10 @@ export default async function AccountPage() {
                     </div>
                     <div>
                       <p className="text-sm text-ink-500">Status</p>
-                      <span className="inline-block px-2 py-1 text-xs font-medium bg-brand-100 text-brand-700 rounded">
+                      {/* 👇 স্ট্যাটাস কালার আপডেট করা হয়েছে */}
+                      <span
+                        className={`inline-block px-2 py-1 text-xs font-medium rounded ${getStatusColor(order.status)}`}
+                      >
                         {order.status}
                       </span>
                     </div>
