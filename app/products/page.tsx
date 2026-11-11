@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ProductCard } from "@/components/product/product-card";
 import { SearchBar } from "@/components/product/search-bar";
 import { FilterSidebar } from "@/components/product/filter-sidebar";
-import { Button } from "@/components/ui/button";
+import { MobileFilterDrawer } from "@/components/product/mobile-filter-drawer"; // 👈 নতুন ইমপোর্ট
 import { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +31,7 @@ export default async function ProductsPage({
       { description: { contains: q, mode: "insensitive" } },
     ];
   }
-  // app/products/page.tsx
+
   if (category) {
     where.category = {
       OR: [
@@ -40,9 +40,11 @@ export default async function ProductsPage({
       ],
     };
   }
+
   if (sizes.length > 0) {
     where.sizes = { hasSome: sizes };
   }
+
   if (minPrice !== undefined || maxPrice !== undefined) {
     where.price = {};
     if (minPrice !== undefined) where.price.gte = minPrice;
@@ -74,18 +76,8 @@ export default async function ProductsPage({
           <FilterSidebar />
         </aside>
 
-        {/* Mobile Filter Button */}
-        <div className="lg:hidden w-full">
-          <details className="group">
-            <summary className="flex items-center justify-between p-4 border border-ink-200 cursor-pointer uppercase tracking-widest text-sm font-medium">
-              Filter Products
-              <span className="transition group-open:rotate-180">▼</span>
-            </summary>
-            <div className="p-6 border border-t-0 border-ink-200 bg-white">
-              <FilterSidebar />
-            </div>
-          </details>
-        </div>
+        {/* 👇 Mobile Filter Drawer */}
+        <MobileFilterDrawer />
 
         {/* Product Grid */}
         <div className="flex-1">

@@ -20,7 +20,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useWishlistStore } from "@/store/wishlist-store";
 
 interface NavbarProps {
-  categories: any[]; // 👈 প্রপ হিসেবে ক্যাটাগরি রিসিভ করবে
+  categories: any[];
 }
 
 export function Navbar({ categories = [] }: NavbarProps) {
@@ -69,7 +69,6 @@ export function Navbar({ categories = [] }: NavbarProps) {
               New Arrivals
             </Link>
 
-            {/* 👇 ডাইনামিক মেগা-মেনু */}
             {categories.map((cat) => (
               <div key={cat.id} className="relative group">
                 <Link
@@ -82,10 +81,9 @@ export function Navbar({ categories = [] }: NavbarProps) {
                   )}
                 </Link>
 
-                {/* Dropdown Menu */}
                 {cat.children.length > 0 && (
                   <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                    <div className="bg-white border border-ink-100 shadow-xl p-4 min-w-[200px] flex flex-col gap-2">
+                    <div className="bg-white border border-ink-100 shadow-xl p-4 min-w-50 flex flex-col gap-2">
                       {cat.children.map((sub: any) => (
                         <Link
                           key={sub.id}
@@ -109,15 +107,15 @@ export function Navbar({ categories = [] }: NavbarProps) {
             </Link>
           </nav>
 
-          {/* Logo (Center) */}
+          {/* Logo (Center) - মোবাইলে সাইজ ছোট করা হয়েছে */}
           <Link
             href="/"
-            className="font-serif text-3xl tracking-tight absolute left-1/2 -translate-x-1/2"
+            className="font-serif text-2xl md:text-3xl tracking-tight absolute left-1/2 -translate-x-1/2"
           >
             ANSUZITA
           </Link>
 
-          {/* Right Icons (এখানে আগের কোডটাই থাকবে) */}
+          {/* Right Icons */}
           <div className="flex items-center gap-2 lg:gap-4 flex-1 justify-end">
             <Button
               variant="ghost"
@@ -140,17 +138,21 @@ export function Navbar({ categories = [] }: NavbarProps) {
                     </Button>
                   </Link>
                 )}
+
+                {/* 👇 Account নাম শুধু বড় স্ক্রিনে */}
                 <Link
                   href="/account"
-                  className="text-sm font-medium hidden sm:block uppercase tracking-widest"
+                  className="hidden md:block text-sm font-medium uppercase tracking-widest"
                 >
                   {session.user?.name?.split(" ")[0]}
                 </Link>
+
+                {/* 👇 Logout বাটন শুধু বড় স্ক্রিনে */}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => signOut()}
-                  className="text-xs uppercase tracking-widest"
+                  className="hidden md:flex text-xs uppercase tracking-widest"
                 >
                   Logout
                 </Button>
@@ -192,11 +194,11 @@ export function Navbar({ categories = [] }: NavbarProps) {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay (এখানেও সাব-ক্যাটাগরি যোগ করা হলো) */}
+      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] bg-white lg:hidden flex flex-col animate-fade-in overflow-y-auto">
+        <div className="fixed inset-0 z-60 bg-white lg:hidden flex flex-col animate-fade-in overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b border-ink-100">
-            <span className="font-serif text-2xl">LUXE</span>
+            <span className="font-serif text-2xl">ANSUZITA</span>
             <button onClick={() => setMobileMenuOpen(false)}>
               <X className="w-6 h-6" />
             </button>
@@ -210,7 +212,6 @@ export function Navbar({ categories = [] }: NavbarProps) {
               New Arrivals
             </Link>
 
-            {/* Mobile Dynamic Categories */}
             {categories.map((cat) => (
               <div
                 key={cat.id}
@@ -257,6 +258,18 @@ export function Navbar({ categories = [] }: NavbarProps) {
                 Admin Dashboard
               </Link>
             )}
+
+            {/* মোবাইলে Account লিংক (ঐচ্ছিক, তবে ভালো) */}
+            {session && (
+              <Link
+                href="/account"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-xl uppercase tracking-widest font-medium text-ink-900 border-t border-ink-100 pt-6 mt-2"
+              >
+                My Account
+              </Link>
+            )}
+
             {session && (
               <button
                 onClick={() => {

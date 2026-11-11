@@ -6,7 +6,9 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { formatPrice, discountPercent } from "@/lib/utils";
 import { ShoppingBag } from "lucide-react";
+import { motion } from "framer-motion";
 
+// 👇 টাইপটি স্পষ্টভাবে ডিফাইন করা হলো
 interface ProductCardProps {
   product: {
     id: string;
@@ -26,7 +28,11 @@ export function ProductCard({ product }: ProductCardProps) {
     : 0;
 
   return (
-    <div className="group relative">
+    <motion.div
+      className="group relative"
+      whileHover={{ y: -8 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
       <Link href={`/product/${product.slug}`} className="block">
         {/* Image Container */}
         <div className="relative aspect-[3/4] overflow-hidden bg-ink-100">
@@ -36,7 +42,7 @@ export function ProductCard({ product }: ProductCardProps) {
             }
             alt={product.name}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" // 👈 sizes প্রপ যোগ করা হলো
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
 
@@ -75,9 +81,10 @@ export function ProductCard({ product }: ProductCardProps) {
               </span>
             )}
           </div>
-          {/* Colors Preview */}
+
+          {/* 👇 টাইপ ঠিক করার জন্য color: string স্পষ্ট করা হলো */}
           <div className="flex justify-center gap-1 mt-2">
-            {product.colors.map((color) => (
+            {product.colors.map((color: string) => (
               <span
                 key={color}
                 className="w-2 h-2 rounded-full border border-ink-300"
@@ -88,6 +95,6 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }

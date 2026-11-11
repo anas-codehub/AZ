@@ -25,6 +25,9 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
   const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(50); // ৫০ মিলিসেকেন্ডের ভাইব্রেশন
+    }
     if (product.sizes.length > 0 && !selectedSize) {
       toast.error("Please select a size");
       return;

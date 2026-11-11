@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { CldUploadWidget } from "next-cloudinary";
+import { Sparkles } from "lucide-react";
 
 interface ProductFormProps {
   initialData?: any;
   isEdit?: boolean;
-  categories: { id: string; name: string; parent: { name: string } | null }[]; // 👈 ক্যাটাগরি ডাটা
+  categories: { id: string; name: string; parent: { name: string } | null }[];
 }
 
 export function ProductForm({
@@ -21,6 +22,7 @@ export function ProductForm({
 }: ProductFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [form, setForm] = useState({
     name: initialData?.name || "",
@@ -29,11 +31,43 @@ export function ProductForm({
     price: initialData?.price || "",
     comparePrice: initialData?.comparePrice || "",
     stock: initialData?.stock || 0,
-    categoryId: initialData?.categoryId || categories[0]?.id || "", // ডিফল্ট প্রথম সাব-ক্যাটাগরি
+    categoryId: initialData?.categoryId || categories[0]?.id || "",
     images: initialData?.images?.join(", ") || "",
     sizes: initialData?.sizes?.join(", ") || "",
     colors: initialData?.colors?.join(", ") || "",
   });
+
+  const handleGenerateDescription = async () => {
+    if (!form.name) {
+      toast.error("Please enter a product name first");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          category: form.categoryId,
+          keywords: form.colors
+            ? `Colors: ${form.colors}. Sizes: ${form.sizes}`
+            : "",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setForm((prev) => ({ ...prev, description: data.description }));
+      toast.success("Description generated!");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,13 +133,33 @@ export function ProductForm({
         onChange={(e) => setForm({ ...form, slug: e.target.value })}
         required
       />
-      <textarea
-        placeholder="Description"
-        value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-        required
-        className="w-full border border-ink-200 p-2 text-sm min-h-[100px]"
-      />
+
+      {/* 👇 ডেসক্রিপশন ফিল্ড ও AI বাটন */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-ink-700">
+            Description
+          </label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleGenerateDescription}
+            disabled={isGenerating}
+            className="text-xs border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white transition-colors"
+          >
+            <Sparkles className="w-3 h-3 mr-1" />
+            {isGenerating ? "Generating..." : "Generate with AI"}
+          </Button>
+        </div>
+        <textarea
+          placeholder="Write or generate product description..."
+          value={form.description}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          required
+          className="w-full border border-ink-200 p-3 text-sm min-h-[120px] rounded-none focus:outline-none focus:border-ink-900"
+        />
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <Input
@@ -129,11 +183,10 @@ export function ProductForm({
           placeholder="Stock Quantity"
           value={form.stock}
           onChange={(e) => setForm({ ...form, stock: e.target.value })}
-          required // 👈 বাধ্যতামূলক
-          min="0" // 👈 ০ এর নিচে যেতে পারবে না
+          required
+          min="0"
         />
 
-        {/* 👇 ক্যাটাগরি সিলেক্ট ড্রপডাউন */}
         <select
           value={form.categoryId}
           onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
@@ -155,7 +208,6 @@ export function ProductForm({
         onChange={(e) => setForm({ ...form, images: e.target.value })}
       />
 
-      {/* Cloudinary Upload Widget */}
       <CldUploadWidget
         signatureEndpoint="/api/sign-cloudinary"
         uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET}
@@ -188,7 +240,7 @@ export function ProductForm({
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-ink-900 text-white"
+        className="w-full bg-ink-900 text-white hover:bg-brand-600"
       >
         {isLoading ? "Saving..." : "Save Product"}
       </Button>

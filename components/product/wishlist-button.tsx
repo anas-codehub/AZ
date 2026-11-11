@@ -27,6 +27,10 @@ export function WishlistButton({
   const isWishlisted = isInWishlist(product.id);
 
   const handleToggle = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
     if (isWishlisted) {
       removeItem(product.id);
       toast.success("Removed from wishlist");

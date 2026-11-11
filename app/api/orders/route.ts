@@ -6,7 +6,10 @@ import { auth } from "@/lib/auth";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, phone, address, city, paymentMethod, items, totalAmount, couponId } = body;
+    const { 
+      name, phone, address, city, paymentMethod, items, 
+      subtotal, discount, shippingCharge, totalAmount, couponId 
+    } = body;
 
     // ১. ভ্যালিডেশন
     if (!items || items.length === 0) {
@@ -19,7 +22,7 @@ export async function POST(req: Request) {
 
     if (!userId) {
       // গেস্ট ইউজার তৈরি বা খোঁজা
-      const guestEmail = `guest_${phone}@luxe.com`;
+      const guestEmail = `guest_${phone}@ansuzita.com`;
       let guestUser = await prisma.user.findUnique({ where: { email: guestEmail } });
       
       if (!guestUser) {
@@ -38,13 +41,13 @@ export async function POST(req: Request) {
     const order = await prisma.order.create({
       data: {
         userId: userId,
-        totalAmount,
+        totalAmount: totalAmount, // 👈 মোট দাম (ডেলিভারি চার্জ ও ডিসকাউন্ট সহ)
         paymentMethod,
         status: "PENDING",
         shippingName: name,
         shippingPhone: phone,
         shippingAddress: address,
-        shippingCity: city,
+        shippingCity: city, // 👈 ড্রপডাউন থেকে আসা জেলার নাম
         couponId: couponId || null, 
         items: {
           create: items.map((item: any) => ({
@@ -58,16 +61,17 @@ export async function POST(req: Request) {
       },
     });
 
+    // ৪. স্টক কমানো
     for (const item of items) {
-  await prisma.product.update({
-    where: { id: item.id },
-    data: {
-      stock: {
-        decrement: item.quantity, // যত  অর্ডার হয়েছে, স্টক তত কমবে
-      },
-    },
-  });
-}
+      await prisma.product.update({
+        where: { id: item.id },
+        data: {
+          stock: {
+            decrement: item.quantity, // যত数量和 অর্ডার হয়েছে, স্টক তত কমবে
+          },
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, orderId: order.id }, { status: 201 });
   } catch (error) {

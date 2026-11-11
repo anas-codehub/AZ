@@ -10,6 +10,7 @@ import { WishlistButton } from "@/components/product/wishlist-button";
 import { RelatedProducts } from "@/components/product/related-products";
 import { ImageGallery } from "@/components/product/image-gallery";
 import type { Metadata } from "next";
+import { MobileAddToCartBar } from "@/components/product/mobile-add-to-cart-bar";
 
 export async function generateMetadata({
   params,
@@ -70,7 +71,7 @@ export default async function ProductDetailPage({
       : 0;
 
   return (
-    <div className="container-luxe py-12 md:py-20">
+    <div className="container-luxe py-12 md:py-20 pb-24 md:pb-20">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
         {/* Left: Image Gallery */}
         <div>
@@ -199,6 +200,8 @@ export default async function ProductDetailPage({
         categoryId={product.categoryId}
         currentProductId={product.id}
       />
+
+      <MobileAddToCartBar product={product} />
     </div>
   );
 }
