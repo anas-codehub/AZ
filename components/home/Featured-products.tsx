@@ -5,14 +5,18 @@ import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product/product-card";
 
 export async function FeaturedProducts() {
-  // ডেটাবেস থেকে নতুন ৪টি প্রোডাক্ট আনা (যেগুলো featured হিসেবে চিহ্নিত বা নতুন)
+  // 👇 শুধুমাত্র ফিচার্ড (New Arrivals) প্রোডাক্টগুলো আনা
   const products = await prisma.product.findMany({
-    where: { isActive: true },
+    where: {
+      isActive: true,
+      isFeatured: true, // 👈 এই লাইনটি যোগ করা হলো
+    },
     orderBy: { createdAt: "desc" },
-    take: 4, // সর্বোচ্চ ৪টি
+    take: 4,
   });
 
-  if (products.length === 0) return null; // যদি কোনো প্রোডাক্ট না থাকে, সেকশন দেখাব না
+  // যদি কোনো ফিচার্ড প্রোডাক্ট না থাকে, সেকশনটি দেখাব না
+  if (products.length === 0) return null;
 
   return (
     <section className="py-24 bg-ink-50">

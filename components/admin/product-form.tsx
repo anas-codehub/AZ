@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-hot-toast";
 import { CldUploadWidget } from "next-cloudinary";
 import { Sparkles } from "lucide-react";
+import { slugify } from "@/lib/utils";
 
 interface ProductFormProps {
   initialData?: any;
@@ -35,6 +36,7 @@ export function ProductForm({
     images: initialData?.images?.join(", ") || "",
     sizes: initialData?.sizes?.join(", ") || "",
     colors: initialData?.colors?.join(", ") || "",
+    isFeatured: initialData?.isFeatured || false, // 👈 নতুন স্টেট
   });
 
   const handleGenerateDescription = async () => {
@@ -73,8 +75,11 @@ export function ProductForm({
     e.preventDefault();
     setIsLoading(true);
 
+    const finalSlug = form.slug.trim() || slugify(form.name);
+
     const payload = {
       ...form,
+      slug: finalSlug,
       price: parseFloat(form.price),
       comparePrice: form.comparePrice ? parseFloat(form.comparePrice) : null,
       stock: parseInt(form.stock.toString()),
@@ -90,6 +95,7 @@ export function ProductForm({
         .split(",")
         .map((s: string) => s.trim())
         .filter(Boolean),
+      isFeatured: form.isFeatured, // 👈 পেলোডে যোগ করা হলো
     };
 
     try {
@@ -236,6 +242,23 @@ export function ProductForm({
         value={form.colors}
         onChange={(e) => setForm({ ...form, colors: e.target.value })}
       />
+
+      {/* 👇 Featured চেকবক্স */}
+      <div className="flex items-center gap-3 p-3 border border-ink-200 bg-ink-50">
+        <input
+          type="checkbox"
+          id="isFeatured"
+          checked={form.isFeatured}
+          onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
+          className="w-4 h-4 accent-brand-600 cursor-pointer"
+        />
+        <label
+          htmlFor="isFeatured"
+          className="text-sm font-medium cursor-pointer"
+        >
+          Show in "New Arrivals" (Homepage)
+        </label>
+      </div>
 
       <Button
         type="submit"

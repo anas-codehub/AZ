@@ -19,8 +19,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: { slug },
+  const product = await prisma.product.findFirst({
+    where: { slug: slug.toLowerCase() },
     select: { name: true, description: true, images: true, price: true },
   });
 
@@ -30,7 +30,7 @@ export async function generateMetadata({
 
   return {
     title: product.name,
-    description: product.description.substring(0, 160), // ১৫০-১৬০ অক্ষর是最好的
+    description: product.description.substring(0, 160),
     openGraph: {
       title: product.name,
       description: product.description.substring(0, 160),
@@ -53,8 +53,9 @@ export default async function ProductDetailPage({
 }) {
   const { slug } = await params;
 
-  const product = await prisma.product.findUnique({
-    where: { slug },
+  // 👇 findFirst এবং lowercase ব্যবহার করা হলো
+  const product = await prisma.product.findFirst({
+    where: { slug: slug.toLowerCase() },
     include: {
       category: true,
       reviews: { include: { user: true }, orderBy: { createdAt: "desc" } },
@@ -75,7 +76,6 @@ export default async function ProductDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
         {/* Left: Image Gallery */}
         <div>
-          {/* 👇 ডাইনামিক ইমেজ গ্যালারি কম্পোনেন্ট */}
           <ImageGallery images={product.images} productName={product.name} />
         </div>
 
